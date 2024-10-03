@@ -17,7 +17,7 @@ public class ScheduleTask {
     @Autowired
     private TokenInvalidRepository tokenInvalidRepository;
 
-    @Scheduled(cron = "00 00 9 * * *", zone = "Asia/Ho_Chi_Minh")
+    @Scheduled(cron = "00 02 9 * * *", zone = "Asia/Ho_Chi_Minh")
     public void removeExpiredTokens() {
         Date now = new Date();
         int deletedCount = tokenInvalidRepository.deleteByExpiresTimeBefore(now);
