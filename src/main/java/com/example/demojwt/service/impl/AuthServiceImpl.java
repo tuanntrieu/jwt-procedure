@@ -7,6 +7,7 @@ import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.InvalidException;
 import com.example.demojwt.exception.NotFoundException;
 import com.example.demojwt.exception.UnauthorizedException;
+import com.example.demojwt.repository.PermissionRepository;
 import com.example.demojwt.repository.TokenInvalidRepository;
 import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.security.CustomUserDetails;
@@ -34,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final TokenInvalidRepository tokenInvalidRepository;
     private final UserService userService;
+    private final PermissionRepository permissionRepository;
 
 
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
@@ -51,6 +53,8 @@ public class AuthServiceImpl implements AuthService {
             return LoginResponseDto.builder()
                     .username(user.getUsername())
                     .accessToken(accessToken)
+                    .role(user.getRole().getRoleName())
+                    .permissions(permissionRepository.findByRoleName(user.getRole().getRoleName()))
                     .build();
         } catch (InternalAuthenticationServiceException | BadCredentialsException e) {
             throw new InvalidException("Incorrect username or password");

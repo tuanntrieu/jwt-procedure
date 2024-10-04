@@ -2,6 +2,7 @@ package com.example.demojwt.security;
 
 import com.example.demojwt.base.RestData;
 import com.example.demojwt.security.jwt.JwtAuthenticationFilter;
+import com.example.demojwt.security.jwt.JwtAuthenticationFilterAfter;
 import com.example.demojwt.security.jwt.JwtEntryPoint;
 import com.example.demojwt.service.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +34,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationFilterAfter jwtAuthenticationFilterAfter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -49,6 +51,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuthenticationFilterAfter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(new JwtEntryPoint())
                         .accessDeniedHandler(customAccessDeniedHandler())
@@ -87,5 +90,3 @@ public class SecurityConfig {
         };
     }
 }
-
-

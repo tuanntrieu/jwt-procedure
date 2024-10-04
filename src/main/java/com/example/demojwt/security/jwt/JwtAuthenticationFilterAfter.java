@@ -26,12 +26,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilterAfter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private final UserRepository userRepository;
@@ -50,20 +51,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String refreshToken = user.getRefreshToken();
                 if (!jwtTokenProvider.isTokenExpired(refreshToken)) {
                     jwt = jwtTokenProvider.refreshToken(refreshToken);
-
                 }
             }
             if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt) && !tokenService.exists(jwt)) {
                 String username = jwtTokenProvider.extractSubjectFromJwt(jwt);
                 CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                String role = userDetails.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .findFirst().orElse("ROLE_STUDENT");
+                String url = request.getRequestURL().toString();
+                List<String> allowedUrls = permissionRepository.allowedUrls(role);
+                if (!isUrlAllowed(url.trim(), allowedUrls)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.getOutputStream().write(new ObjectMapper().writeValueAsBytes(RestData.error(HttpStatus.FORBIDDEN.value(), "Access Denied")));
+                    return;
+                }
 
             }
         } catch (Exception ex) {
-            log.error("Could not set user authentication in security context", ex);
+            log.error(ex.getMessage(), ex);
         }
         filterChain.doFilter(request, response);
     }
@@ -75,10 +82,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
-
     private boolean isUrlAllowed(String requestUrl, List<String> allowedUrls) {
+        requestUrl = requestUrl.trim();
         for (String url : allowedUrls) {
-            if (requestUrl.equals(url) || requestUrl.startsWith(url)) {
+            url = url.trim();
+            if (requestUrl.equalsIgnoreCase(url) || requestUrl.startsWith(url)) {
                 return true;
             }
         }

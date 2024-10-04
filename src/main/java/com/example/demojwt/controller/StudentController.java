@@ -28,7 +28,7 @@ import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/students")
 public class StudentController {
     private final StudentService studentService;
     @PostMapping("/create-student")
@@ -48,7 +48,7 @@ public class StudentController {
         return VsResponseUtil.success("Successfully deleted student");
     }
 
-    @PostMapping("/search")
+    @PostMapping("/search-student")
     public ResponseEntity<?> searchStudents(@RequestBody StudentSearchDto dto) {
         return VsResponseUtil.success(studentService.findStudents(dto, PageRequest.of(dto.getPageNo(), dto.getPageSize(), Sort.by(dto.getSortBy()))));
     }
