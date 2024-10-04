@@ -7,12 +7,14 @@ package com.example.demojwt.repository;
 import com.example.demojwt.dto.request.StudentDto;
 import com.example.demojwt.dto.request.StudentSearchDto;
 import com.example.demojwt.dto.request.StudentUpdateDto;
+import com.example.demojwt.dto.response.StudentResponseDto;
 import com.example.demojwt.enity.Student;
 import jakarta.persistence.*;
 
 import jakarta.transaction.Transactional;
 
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +29,10 @@ import java.util.List;
 
 
 @Component
+@RequiredArgsConstructor
 public class StudentRepository {
+    private final PermissionRepository permissionRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -96,7 +101,7 @@ public class StudentRepository {
     }
 
     @Transactional
-    public Page<Student> searchStudent(StudentSearchDto studentSearchDto, Pageable pageable) {
+    public Page<StudentResponseDto> searchStudent(StudentSearchDto studentSearchDto, Pageable pageable) {
         StoredProcedureQuery query = entityManager.createStoredProcedureQuery("STUDENT_PKG.searchStudent");
         query.registerStoredProcedureParameter("s_name", String.class, ParameterMode.IN);
         query.registerStoredProcedureParameter("s_address", String.class, ParameterMode.IN);
@@ -109,7 +114,6 @@ public class StudentRepository {
         query.registerStoredProcedureParameter("c_students", void.class, ParameterMode.REF_CURSOR);
         query.registerStoredProcedureParameter("total", Long.class, ParameterMode.OUT);
 
-
         query.setParameter("s_name", studentSearchDto.getName());
         query.setParameter("s_address", studentSearchDto.getAddress());
         query.setParameter("s_gender", studentSearchDto.getGender());
@@ -120,18 +124,22 @@ public class StudentRepository {
         query.setParameter("sortBy", studentSearchDto.getSortBy());
 
         query.execute();
-        List<Student> students = new ArrayList<>();
+        List<StudentResponseDto> students = new ArrayList<>();
 
 
         List<Object[]> results = query.getResultList();
         for (Object[] result : results) {
-            Student student = new Student();
-            student.setId((Long) result[0]);
-            student.setName((String) result[4]);
-            student.setAddress((String) result[1]);
-            student.setGender((String) result[3]);
-            Timestamp timestamp = (Timestamp) result[2];
-            student.setBirthday(new Date(timestamp.getTime()));
+            Timestamp timestamp = (Timestamp) result[4];
+            StudentResponseDto student = StudentResponseDto.builder()
+                    .id((Long) result[0])
+                    .name((String) result[1])
+                    .gender((String) result[2])
+                    .address((String) result[3])
+                    .birthday((new Date(timestamp.getTime())))
+                    .userName((String) result[5])
+                    .role((String) result[6])
+                    .permissions(permissionRepository.findByRoleName(result[6].toString()))
+                    .build();
             students.add(student);
         }
         Long total = (Long) query.getOutputParameterValue("total");

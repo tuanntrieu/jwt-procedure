@@ -1,7 +1,6 @@
 package com.example.demojwt.enity;
 
 
-import com.example.demojwt.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,8 +18,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String fullname;
-
     private String username;
 
     private String password;
@@ -31,7 +28,11 @@ public class User {
     @JsonIgnore
     private String refreshToken;
 
+    @ManyToOne
+    @JoinColumn(name = "role_id", foreignKey = @ForeignKey(name = "FK_USER_ROLE"), referencedColumnName = "id")
     private Role role;
 
+    @OneToOne(mappedBy = "user")
+    private Student student;
 
 }

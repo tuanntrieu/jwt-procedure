@@ -1,9 +1,6 @@
 package com.example.demojwt.enity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Date;
@@ -26,4 +23,9 @@ public class Student {
     private Date birthday;
 
     private String gender;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
 }

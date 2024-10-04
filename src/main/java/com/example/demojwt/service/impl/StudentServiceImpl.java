@@ -5,6 +5,7 @@ import com.example.demojwt.dto.request.StudentDto;
 import com.example.demojwt.dto.request.StudentSearchDto;
 import com.example.demojwt.dto.request.StudentUpdateDto;
 import com.example.demojwt.dto.response.PageResponseDto;
+import com.example.demojwt.dto.response.StudentResponseDto;
 import com.example.demojwt.enity.Student;
 import com.example.demojwt.exception.NotFoundException;
 import com.example.demojwt.repository.StudentRepository;
@@ -56,8 +57,8 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public PageResponseDto<Student> findStudents(StudentSearchDto studentSearchDto, Pageable pageable) {
-        Page<Student> page=studentRepository.searchStudent(studentSearchDto, pageable);
+    public PageResponseDto<StudentResponseDto> findStudents(StudentSearchDto studentSearchDto, Pageable pageable) {
+        Page<StudentResponseDto> page=studentRepository.searchStudent(studentSearchDto, pageable);
         PageResponseDto responseDto=new PageResponseDto<>();
         responseDto.setItems(page.getContent());
         responseDto.setTotalElements(page.getTotalElements());

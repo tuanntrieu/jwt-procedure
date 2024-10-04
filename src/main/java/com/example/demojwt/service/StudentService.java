@@ -5,6 +5,7 @@ import com.example.demojwt.dto.request.StudentDto;
 import com.example.demojwt.dto.request.StudentSearchDto;
 import com.example.demojwt.dto.request.StudentUpdateDto;
 import com.example.demojwt.dto.response.PageResponseDto;
+import com.example.demojwt.dto.response.StudentResponseDto;
 import com.example.demojwt.enity.Student;
 import org.springframework.data.domain.Pageable;
 
@@ -18,7 +19,7 @@ public interface StudentService {
 
     void delete(StudentDeleteDto studentDto);
 
-    PageResponseDto<Student> findStudents(StudentSearchDto studentSearchDto, Pageable pageable);
+    PageResponseDto<StudentResponseDto> findStudents(StudentSearchDto studentSearchDto, Pageable pageable);
 
 
 }

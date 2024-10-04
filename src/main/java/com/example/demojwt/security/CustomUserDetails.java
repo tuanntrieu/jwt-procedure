@@ -16,9 +16,6 @@ public class CustomUserDetails implements UserDetails {
     @Getter
     private final int id;
 
-    @Getter
-    private final String fullname;
-
     @JsonIgnore
     private final String username;
 
@@ -27,17 +24,16 @@ public class CustomUserDetails implements UserDetails {
 
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public CustomUserDetails(int id, String fullname, String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(int id, String username, String password, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
-        this.fullname = fullname;
         this.username = username;
         this.password = password;
         this.authorities = authorities;
     }
     public static CustomUserDetails create(User user) {
         List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
-        return new CustomUserDetails(user.getId(), user.getFullname(), user.getUsername(), user.getPassword(), authorities);
+        authorities.add(new SimpleGrantedAuthority(user.getRole().getRoleName()));
+        return new CustomUserDetails(user.getId(), user.getUsername(), user.getPassword(), authorities);
     }
 
     @Override
