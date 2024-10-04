@@ -3,9 +3,11 @@ package com.example.demojwt.security.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.demojwt.enity.TokenInvalid;
 import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.InvalidException;
 import com.example.demojwt.exception.NotFoundException;
+import com.example.demojwt.repository.TokenInvalidRepository;
 import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.security.CustomUserDetails;
 import com.example.demojwt.service.TokenService;
@@ -33,6 +35,7 @@ public class JwtTokenProvider {
     private static final String TOKEN_ID = "id_token";
     private final UserRepository userRepository;
     private final TokenService tokenService;
+    private final TokenInvalidRepository tokenInvalidRepository;
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -85,6 +88,11 @@ public class JwtTokenProvider {
         String username = extractSubjectFromJwt(refreshToken);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+        tokenInvalidRepository.save(TokenInvalid.builder()
+                .token(refreshToken)
+                .tokenType("refresh_token")
+                .expiresTime(extractExpiresTimeFromJwt(refreshToken))
+                .build());
         if (!refreshToken.equals(user.getRefreshToken())) {
             throw new InvalidException("Invalid Refresh Token");
         }
