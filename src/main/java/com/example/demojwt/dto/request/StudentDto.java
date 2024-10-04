@@ -26,4 +26,13 @@ public class StudentDto {
     @NotBlank(message = "Gender is required")
     private  String gender;
 
+    @NotBlank(message = "Username is required")
+    private String username;
+
+    @NotBlank(message = "password is required")
+    private String password;
+
+    @NotBlank(message = "rePassword is required")
+    private String rePassword;
+
 }

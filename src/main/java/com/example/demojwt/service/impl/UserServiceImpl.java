@@ -17,4 +17,9 @@ public class UserServiceImpl implements UserService {
                 () -> new NotFoundException("User not found")
         );
     }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
 }

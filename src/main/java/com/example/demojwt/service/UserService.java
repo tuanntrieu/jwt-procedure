@@ -12,4 +12,5 @@ import org.springframework.stereotype.Service;
 public interface UserService {
     User findByUsername(String username);
 
+    boolean existsByUsername(String username);
 }

@@ -7,9 +7,12 @@ import com.example.demojwt.dto.request.StudentUpdateDto;
 import com.example.demojwt.dto.response.PageResponseDto;
 import com.example.demojwt.dto.response.StudentResponseDto;
 import com.example.demojwt.enity.Student;
+import com.example.demojwt.exception.DataIntegrityViolationException;
 import com.example.demojwt.exception.NotFoundException;
 import com.example.demojwt.repository.StudentRepository;
+import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.service.StudentService;
+import com.example.demojwt.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +25,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
+    private final UserService userService;
 
     @Override
     public Student findById(Long id) {
@@ -34,6 +38,12 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public void create(StudentDto studentDto) {
+        if(userService.existsByUsername(studentDto.getUsername())) {
+            throw new DataIntegrityViolationException("Username is already taken");
+        }
+        if(!studentDto.getPassword().equals(studentDto.getRePassword())){
+            throw new DataIntegrityViolationException("Password is not match");
+        }
         studentRepository.addStudent(studentDto);
     }
 

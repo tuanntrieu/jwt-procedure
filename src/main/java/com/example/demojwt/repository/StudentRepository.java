@@ -4,6 +4,7 @@ package com.example.demojwt.repository;
 
 
 
+import com.example.demojwt.constant.RoleConstant;
 import com.example.demojwt.dto.request.StudentDto;
 import com.example.demojwt.dto.request.StudentSearchDto;
 import com.example.demojwt.dto.request.StudentUpdateDto;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 
@@ -32,6 +34,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StudentRepository {
     private final PermissionRepository permissionRepository;
+    private final RoleRepository roleRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -65,11 +69,17 @@ public class StudentRepository {
         query.registerStoredProcedureParameter("s_address", String.class, ParameterMode.IN);
         query.registerStoredProcedureParameter("s_birthday", Date.class, ParameterMode.IN);
         query.registerStoredProcedureParameter("s_gender", String.class, ParameterMode.IN);
+        query.registerStoredProcedureParameter("username", String.class, ParameterMode.IN);
+        query.registerStoredProcedureParameter("password", String.class, ParameterMode.IN);
+        query.registerStoredProcedureParameter("role_id", Long.class, ParameterMode.IN);
 
         query.setParameter("s_name", studentDto.getName());
         query.setParameter("s_address", studentDto.getAddress());
         query.setParameter("s_gender", studentDto.getGender());
         query.setParameter("s_birthday", studentDto.getBirthday());
+        query.setParameter("username", studentDto.getUsername());
+        query.setParameter("password", passwordEncoder.encode(studentDto.getPassword()));
+        query.setParameter("role_id",roleRepository.findByRoleName(RoleConstant.STUDENT).getId());
 
         query.execute();
     }

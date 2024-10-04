@@ -62,6 +62,12 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage(), ex);
         return VsResponseUtil.error(ex.getStatus(), ex.getMessage());
     }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<RestData<?>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        log.error(ex.getMessage(), ex);
+        return VsResponseUtil.error(ex.getStatus(), ex.getMessage());
+    }
 
 
 }
