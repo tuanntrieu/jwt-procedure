@@ -9,7 +9,11 @@ import com.example.demojwt.dto.request.StudentDto;
 import com.example.demojwt.dto.request.StudentSearchDto;
 import com.example.demojwt.dto.request.StudentUpdateDto;
 import com.example.demojwt.dto.response.StudentResponseDto;
+import com.example.demojwt.enity.Role;
 import com.example.demojwt.enity.Student;
+import com.example.demojwt.enity.User;
+import com.example.demojwt.exception.NotFoundException;
+import com.example.demojwt.service.RoleService;
 import jakarta.persistence.*;
 
 import jakarta.transaction.Transactional;
@@ -36,6 +40,7 @@ public class StudentRepository {
     private final PermissionRepository permissionRepository;
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -52,11 +57,15 @@ public class StudentRepository {
             Object[] result = results.get(0);
             Student student = new Student();
             student.setId((Long) result[0]);
-            student.setName((String) result[4]);
-            student.setAddress((String) result[1]);
-            student.setGender((String) result[3]);
-            Timestamp timestamp = (Timestamp) result[2];
+            student.setName((String) result[1]);
+            student.setAddress((String) result[2]);
+            student.setGender((String) result[4]);
+            Timestamp timestamp = (Timestamp) result[3];
             student.setBirthday(new Date(timestamp.getTime()));
+            User user=userRepository.findById((Long)result[5]).orElseThrow(
+                    () -> new NotFoundException("User Not Found")
+            );
+            student.setUser(user);
             return student;
         }
         return null;
@@ -79,7 +88,10 @@ public class StudentRepository {
         query.setParameter("s_birthday", studentDto.getBirthday());
         query.setParameter("username", studentDto.getUsername());
         query.setParameter("password", passwordEncoder.encode(studentDto.getPassword()));
-        query.setParameter("role_id",roleRepository.findByRoleName(RoleConstant.STUDENT).getId());
+        Role role=roleRepository.findByRoleName(RoleConstant.STUDENT).orElseThrow(
+                ()->new NotFoundException("Role not found")
+        );
+        query.setParameter("role_id",role.getId());
 
         query.execute();
     }

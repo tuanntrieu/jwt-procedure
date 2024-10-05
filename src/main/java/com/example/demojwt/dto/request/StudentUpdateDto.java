@@ -26,4 +26,5 @@ public class StudentUpdateDto {
 
     @NotBlank(message = "Gender is required")
     private  String gender;
+
 }

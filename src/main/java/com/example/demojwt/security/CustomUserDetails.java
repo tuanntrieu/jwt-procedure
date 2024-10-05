@@ -14,7 +14,7 @@ import java.util.List;
 public class CustomUserDetails implements UserDetails {
 
     @Getter
-    private final int id;
+    private final Long id;
 
     @JsonIgnore
     private final String username;
@@ -24,7 +24,7 @@ public class CustomUserDetails implements UserDetails {
 
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public CustomUserDetails(int id, String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(Long id, String username, String password, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.password = password;
