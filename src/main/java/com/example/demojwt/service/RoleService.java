@@ -14,6 +14,10 @@ public interface RoleService {
 
     List<String> getALlRole();
 
+    List<Permission> getAllPermission();
+
+    List<Permission> getPermissionByRoleName(String roleName);
+
     void updateRole(StudentUpdateRoleDto studentUpdateRoleDto);
 
     Role findRoleByRoleName(String roleName);

@@ -1,16 +1,17 @@
 package com.example.demojwt.dto.response;
 
 import com.example.demojwt.enity.Permission;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class StudentResponseDto {
     private Long id;
 
@@ -26,5 +27,5 @@ public class StudentResponseDto {
 
     private String role;
 
-    private List<String> permissions;
+    private List<String> permissions=new ArrayList<>();
 }

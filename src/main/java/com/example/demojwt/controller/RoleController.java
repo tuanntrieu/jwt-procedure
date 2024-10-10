@@ -32,4 +32,10 @@ public class RoleController {
         roleService.updateRole(studentUpdateRoleDto);
         return VsResponseUtil.success("Role updated");
     }
+
+
+    @PostMapping("/load-permissions")
+    public ResponseEntity<?> loadAllPermission() {
+        return VsResponseUtil.success( roleService.getAllPermission());
+    }
 }

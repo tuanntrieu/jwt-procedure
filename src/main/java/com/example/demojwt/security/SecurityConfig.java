@@ -1,8 +1,8 @@
 package com.example.demojwt.security;
 
 import com.example.demojwt.base.RestData;
+import com.example.demojwt.security.jwt.AuthorFilter;
 import com.example.demojwt.security.jwt.JwtAuthenticationFilter;
-import com.example.demojwt.security.jwt.JwtAuthenticationFilterAfter;
 import com.example.demojwt.security.jwt.JwtEntryPoint;
 import com.example.demojwt.service.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +24,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -34,7 +36,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final JwtAuthenticationFilterAfter jwtAuthenticationFilterAfter;
+    private final AuthorFilter authorFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -45,13 +47,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(request -> corsConfiguration()))
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jwtAuthenticationFilterAfter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(authorFilter, FilterSecurityInterceptor.class)
+
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(new JwtEntryPoint())
                         .accessDeniedHandler(customAccessDeniedHandler())

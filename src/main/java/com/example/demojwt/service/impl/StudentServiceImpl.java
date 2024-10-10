@@ -10,6 +10,7 @@ import com.example.demojwt.enity.Student;
 import com.example.demojwt.exception.DataIntegrityViolationException;
 import com.example.demojwt.exception.NotFoundException;
 import com.example.demojwt.repository.StudentRepository;
+import com.example.demojwt.repository.StudentRepositoryV2;
 import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.service.StudentService;
 import com.example.demojwt.service.UserService;
@@ -24,7 +25,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
-    private final StudentRepository studentRepository;
+    private final StudentRepositoryV2 studentRepository;
     private final UserService userService;
 
     @Override

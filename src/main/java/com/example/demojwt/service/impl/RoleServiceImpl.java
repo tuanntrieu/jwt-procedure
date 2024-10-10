@@ -1,5 +1,6 @@
 package com.example.demojwt.service.impl;
 
+import com.example.demojwt.constant.RoleConstant;
 import com.example.demojwt.dto.request.PermisionUpdateRequest;
 import com.example.demojwt.dto.request.StudentUpdateRoleDto;
 import com.example.demojwt.enity.Permission;
@@ -9,7 +10,6 @@ import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.NotFoundException;
 import com.example.demojwt.repository.PermissionRepository;
 import com.example.demojwt.repository.RoleRepository;
-import com.example.demojwt.repository.StudentRepository;
 import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.service.RoleService;
 import com.example.demojwt.service.StudentService;
@@ -32,14 +32,14 @@ public class RoleServiceImpl implements RoleService {
     public void updatePermission(PermisionUpdateRequest permisionUpdateRequest) {
         Set<Permission> newPermission = new HashSet<>();
 
-        Role role=findRoleByRoleName(permisionUpdateRequest.getRole());
+        Role role = findRoleByRoleName(permisionUpdateRequest.getRole());
 
         role.getPermissions().forEach(permission -> {
             permissionRepository.deleteByRoleName(role.getId(), permission.getId());
         });
 
         permisionUpdateRequest.getPermissions().forEach(permission -> {
-            Permission permissionTmp=permissionRepository.findByNamePermission(permission);
+            Permission permissionTmp = permissionRepository.findByNamePermission(permission);
             permissionTmp.getRoles().add(role);
             permissionRepository.save(permissionTmp);
             newPermission.add(permissionRepository.findByNamePermission(permission));
@@ -53,16 +53,33 @@ public class RoleServiceImpl implements RoleService {
         return roleRepository.findAllRoleName();
     }
 
+    @Override
+    public List<Permission> getAllPermission() {
+        return permissionRepository.loadAllPermissions();
+    }
+
+    @Override
+    public List<Permission> getPermissionByRoleName(String roleName) {
+        return roleRepository.findPermissionByRoleName(roleName);
+    }
+
     public Role findRoleByRoleName(String roleName) {
         return roleRepository.findByRoleName(roleName).orElseThrow(
-                ()->new NotFoundException("Role not found")
+                () -> new NotFoundException("Role not found")
         );
     }
 
     @Override
-    public void updateRole(StudentUpdateRoleDto studentUpdateRoleDto){
-        Student student= studentService.findById(studentUpdateRoleDto.getStudentId());
-        User user=student.getUser();
+    public void updateRole(StudentUpdateRoleDto studentUpdateRoleDto) {
+        if (studentUpdateRoleDto.getRole().equals(RoleConstant.CLASS_MONITOR)) {
+            User classMonitor = userRepository.loadUserByRoleName(RoleConstant.CLASS_MONITOR);
+            if (classMonitor != null) {
+                classMonitor.setRole(findRoleByRoleName(RoleConstant.STUDENT));
+                userRepository.save(classMonitor);
+            }
+        }
+        Student student = studentService.findById(studentUpdateRoleDto.getStudentId());
+        User user = student.getUser();
         user.setRole(findRoleByRoleName(studentUpdateRoleDto.getRole()));
         userRepository.save(user);
     }
