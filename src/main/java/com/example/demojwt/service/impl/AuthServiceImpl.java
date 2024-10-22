@@ -2,6 +2,7 @@ package com.example.demojwt.service.impl;
 
 import com.example.demojwt.dto.request.LoginRequestDto;
 import com.example.demojwt.dto.response.LoginResponseDto;
+import com.example.demojwt.enity.Permission;
 import com.example.demojwt.enity.TokenInvalid;
 import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.InvalidException;
@@ -13,6 +14,7 @@ import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.security.CustomUserDetails;
 import com.example.demojwt.security.jwt.JwtTokenProvider;
 import com.example.demojwt.service.AuthService;
+import com.example.demojwt.service.FunctionService;
 import com.example.demojwt.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,15 +29,16 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
     private final TokenInvalidRepository tokenInvalidRepository;
     private final UserService userService;
-    private final PermissionRepository permissionRepository;
+    private final FunctionService functionService;
 
 
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
@@ -45,16 +48,16 @@ public class AuthServiceImpl implements AuthService {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String accessToken = jwtTokenProvider.generateToken(userDetails, Boolean.FALSE);
             String refreshToken = jwtTokenProvider.generateToken(userDetails, Boolean.TRUE);
-            User user = userRepository.findByUsername(loginRequestDto.getUsername())
-                    .orElseThrow(() -> new NotFoundException("User not found"));
+            User user = userService.findByUsername(loginRequestDto.getUsername());
             user.setAccessToken(accessToken);
             user.setRefreshToken(refreshToken);
-            userRepository.save(user);
+            userService.save(user);
             return LoginResponseDto.builder()
                     .username(user.getUsername())
                     .accessToken(accessToken)
+                    .refreshToken(refreshToken)
                     .role(user.getRole().getRoleName())
-                    .permissions(permissionRepository.findByRoleName(user.getRole().getRoleName()))
+                    .functions(functionService.loadFunctionResponseByRole(user.getRole().getRoleName()))
                     .build();
         } catch (InternalAuthenticationServiceException | BadCredentialsException e) {
             throw new InvalidException("Incorrect username or password");
@@ -84,4 +87,11 @@ public class AuthServiceImpl implements AuthService {
         }
         logout.logout(request, response, authentication);
     }
+
+    @Override
+    public Boolean usernameExists(String username) {
+        return userService.existsByUsername(username);
+    }
+
+
 }

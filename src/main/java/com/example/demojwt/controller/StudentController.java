@@ -1,18 +1,11 @@
 package com.example.demojwt.controller;
 
 import com.example.demojwt.base.VsResponseUtil;
-import com.example.demojwt.constant.PermissionConstant;
-import com.example.demojwt.constant.RoleConstant;
-import com.example.demojwt.dto.request.StudentDeleteDto;
-import com.example.demojwt.dto.request.StudentDto;
-import com.example.demojwt.dto.request.StudentSearchDto;
-import com.example.demojwt.dto.request.StudentUpdateDto;
-
-import com.example.demojwt.enity.Permission;
-import com.example.demojwt.enity.Role;
-import com.example.demojwt.repository.PermissionRepository;
-import com.example.demojwt.repository.RoleRepository;
+import com.example.demojwt.dto.request.*;
+import com.example.demojwt.service.RoleService;
 import com.example.demojwt.service.StudentService;
+import com.example.demojwt.util.ExcelImportUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,27 +16,29 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/students")
 public class StudentController {
     private final StudentService studentService;
+    private final RoleService roleService;
+
     @PostMapping("/create-student")
-    public ResponseEntity<?> createStudent(@Validated @RequestBody StudentDto studentDto){
+    public ResponseEntity<?> createStudent(@Validated @RequestBody StudentDto studentDto) {
         studentService.create(studentDto);
         return VsResponseUtil.success("Student is created");
     }
+
     @PostMapping("/update-student")
-    public ResponseEntity<?> updateStudent(@Validated @RequestBody StudentUpdateDto studentDto){
+    public ResponseEntity<?> updateStudent(@Validated @RequestBody StudentUpdateDto studentDto) {
         studentService.update(studentDto);
         return VsResponseUtil.success("Student is updated");
     }
 
     @PostMapping("/delete-student")
-    public ResponseEntity<?> deleteStudent(@RequestBody StudentDeleteDto studentDto){
+    public ResponseEntity<?> deleteStudent(@RequestBody StudentDeleteDto studentDto) {
         studentService.delete(studentDto);
         return VsResponseUtil.success("Successfully deleted student");
     }
@@ -51,6 +46,22 @@ public class StudentController {
     @PostMapping("/search-student")
     public ResponseEntity<?> searchStudents(@RequestBody StudentSearchDto dto) {
         return VsResponseUtil.success(studentService.findStudents(dto, PageRequest.of(dto.getPageNo(), dto.getPageSize(), Sort.by(dto.getSortBy()))));
+    }
+
+    @PostMapping("/update-role-student")
+    public ResponseEntity<?> updateRole(@RequestBody StudentUpdateRoleDto studentUpdateRoleDto) {
+        roleService.updateRole(studentUpdateRoleDto);
+        return VsResponseUtil.success("Role updated");
+    }
+
+    @PostMapping(value = "/export-student-excel")
+    public void exportExcelStudent(@RequestBody StudentSearchExportDto studentUpdateRoleDto, HttpServletResponse response) throws IOException {
+        studentService.exportStudents(studentUpdateRoleDto, response);
+    }
+
+    @PostMapping("/create-example-file")
+    public void createEx(HttpServletResponse response) throws IOException {
+        studentService.createExampleFile(response);
     }
 
 }

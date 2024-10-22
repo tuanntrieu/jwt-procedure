@@ -13,4 +13,6 @@ public interface UserService {
     User findByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    User save(User user);
 }

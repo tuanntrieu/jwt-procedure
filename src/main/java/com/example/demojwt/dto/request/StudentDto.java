@@ -8,7 +8,6 @@ import lombok.Setter;
 
 import java.sql.Date;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -34,5 +33,8 @@ public class StudentDto {
 
     @NotBlank(message = "rePassword is required")
     private String rePassword;
+
+    @NotBlank(message = "Role is required")
+    private String role;
 
 }

@@ -1,32 +1,25 @@
 package com.example.demojwt.controller;
 
 import com.example.demojwt.base.VsResponseUtil;
-
-import com.example.demojwt.constant.PermissionConstant;
-import com.example.demojwt.constant.RoleConstant;
-import com.example.demojwt.dto.request.LoginRequestDto;
-import com.example.demojwt.dto.request.StudentUpdateRoleDto;
-import com.example.demojwt.enity.Permission;
-import com.example.demojwt.enity.Role;
-import com.example.demojwt.enity.User;
-import com.example.demojwt.exception.NotFoundException;
-import com.example.demojwt.repository.PermissionRepository;
-import com.example.demojwt.repository.RoleRepository;
-import com.example.demojwt.repository.UserRepository;
+import com.example.demojwt.dto.request.*;
+import com.example.demojwt.security.jwt.JwtTokenProvider;
 import com.example.demojwt.service.AuthService;
 import com.example.demojwt.service.RoleService;
 import com.example.demojwt.service.UserService;
+import com.example.demojwt.util.ExcelImportUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -35,8 +28,7 @@ public class AuthController {
     private final UserService userService;
     private final AuthService authService;
     private final RoleService roleService;
-   private final PermissionRepository permissionRepository;
-    private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/users")
     public ResponseEntity<?> getUser(@RequestParam String username) {
@@ -53,9 +45,47 @@ public class AuthController {
         authService.logout(request, response, authentication);
         return VsResponseUtil.success("Logout success");
     }
+
     @PostMapping("/auth/load-permission-by-role-name")
     public ResponseEntity<?> loadPermissionByRoleName(@RequestBody StudentUpdateRoleDto studentUpdateRoleDto) {
-        return VsResponseUtil.success( roleService.getPermissionByRoleName(studentUpdateRoleDto.getRole()));
+        return VsResponseUtil.success(roleService.loadPermissionsByRole(studentUpdateRoleDto));
     }
+
+    @PostMapping("/auth/load-function-by-role-name")
+    public ResponseEntity<?> loadFunctionByRoleName(@RequestBody StudentUpdateRoleDto studentUpdateRoleDto) {
+        return VsResponseUtil.success(roleService.loadFunctionsByRole(studentUpdateRoleDto));
+    }
+
+    @PostMapping("/auth/find-all-role")
+    public ResponseEntity<?> findAllRole() {
+        return VsResponseUtil.success(roleService.getALlRole());
+    }
+
+
+    @PostMapping("/auth/load-group")
+    public ResponseEntity<?> loadGroup() {
+        return VsResponseUtil.success(roleService.loadGroups());
+    }
+
+    @PostMapping("/auth/load-permission-by-group")
+    public ResponseEntity<?> loadPerByGroup(@RequestBody GroupDto groupDto) {
+        return VsResponseUtil.success(roleService.loadPermissionsByGroup(groupDto.getGroup()));
+    }
+
+    @PostMapping("/auth/username-exits")
+    public ResponseEntity<?> usernameExist(@RequestBody UsernameExistDto dto) {
+        return VsResponseUtil.success(userService.existsByUsername(dto.getUsername()));
+    }
+
+    @PostMapping("/auth/exist-role")
+    public ResponseEntity<?> existRole(@RequestBody RoleDto roleDto) {
+        return VsResponseUtil.success(roleService.existsRole(roleDto.getRoleName()));
+    }
+
+    @PostMapping("/auth/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshDto dto) {
+        return VsResponseUtil.success(jwtTokenProvider.refreshToken(dto.getToken()));
+    }
+
 
 }

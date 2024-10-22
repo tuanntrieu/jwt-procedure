@@ -13,27 +13,24 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Permission {
+@Table(name="functions")
+public class Function {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String namePermission;
+    private String nameFunc;
 
-    private String endPoint;
-
-    private String permissionGr;
-
-    @ManyToOne
-    @JoinColumn(name = "function_id")
-    @JsonIgnore
-    private Function function ;
+    private String url;
 
     @ManyToMany(
             fetch = FetchType.LAZY,
-            cascade = { CascadeType.MERGE},
-            mappedBy = "permissions")
+            cascade =  CascadeType.MERGE,
+            mappedBy = "functions")
     @JsonIgnore
     private Set<Role> roles = new HashSet<>();
 
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "function")
+    @JsonIgnore
+    private Set<Permission> permissions = new HashSet<>();
 }

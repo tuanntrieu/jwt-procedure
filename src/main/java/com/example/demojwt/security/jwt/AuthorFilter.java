@@ -1,7 +1,6 @@
 package com.example.demojwt.security.jwt;
 
 import com.example.demojwt.base.RestData;
-import com.example.demojwt.enity.User;
 import com.example.demojwt.repository.PermissionRepository;
 import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.security.CustomUserDetails;
@@ -17,13 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -43,22 +40,12 @@ public class AuthorFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String requestUrl = request.getRequestURL().toString();
-        if(isUrlAllowed(requestUrl.trim(),PUBLIC_END_POINT)) {
+        if (isEndPointAllowed(requestUrl.trim(), PUBLIC_END_POINT)) {
             filterChain.doFilter(request, response);
             return;
         }
         try {
             String jwt = getJwtFromRequest(request);
-            if (StringUtils.hasText(jwt) && jwtTokenProvider.isTokenExpired(jwt) && !tokenService.exists(jwt)) {
-                String username = jwtTokenProvider.extractSubjectFromJwt(jwt);
-                User user = userRepository.findByUsername(username).orElseThrow(
-                        () -> new UsernameNotFoundException("User not found")
-                );
-                String refreshToken = user.getRefreshToken();
-                if (!jwtTokenProvider.isTokenExpired(refreshToken)) {
-                    jwt = jwtTokenProvider.refreshToken(refreshToken);
-                }
-            }
             if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt) && !tokenService.exists(jwt)) {
                 String username = jwtTokenProvider.extractSubjectFromJwt(jwt);
                 CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
@@ -66,9 +53,9 @@ public class AuthorFilter extends OncePerRequestFilter {
                         .map(GrantedAuthority::getAuthority)
                         .findFirst().orElse("ROLE_STUDENT");
 
-                List<String> allowedUrls = permissionRepository.allowedUrls(role);
-                allowedUrls.add("http://localhost:8080/api/v1/logout");
-                if (!isUrlAllowed(requestUrl.trim(), allowedUrls)) {
+                List<String> allowedEndPoints = permissionRepository.allowedEndPoints(role);
+                allowedEndPoints.add("http://localhost:8080/api/v1/logout");
+                if (!isEndPointAllowed(requestUrl.trim(), allowedEndPoints)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     response.getOutputStream().write(new ObjectMapper().writeValueAsBytes(RestData.error(HttpStatus.FORBIDDEN.value(), "Access Denied")));
@@ -89,11 +76,12 @@ public class AuthorFilter extends OncePerRequestFilter {
         }
         return null;
     }
-    private boolean isUrlAllowed(String requestUrl, List<String> allowedUrls) {
+
+    private boolean isEndPointAllowed(String requestUrl, List<String> allowedEndPoints) {
         requestUrl = requestUrl.trim();
-        for (String url : allowedUrls) {
-            url = url.trim();
-            if (requestUrl.equalsIgnoreCase(url) || requestUrl.startsWith(url)) {
+        for (String endPoint : allowedEndPoints) {
+            endPoint = endPoint.trim();
+            if (requestUrl.equalsIgnoreCase(endPoint) || requestUrl.startsWith(endPoint)) {
                 return true;
             }
         }

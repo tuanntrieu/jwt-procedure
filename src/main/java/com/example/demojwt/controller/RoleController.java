@@ -1,8 +1,11 @@
 package com.example.demojwt.controller;
 
 import com.example.demojwt.base.VsResponseUtil;
-import com.example.demojwt.dto.request.PermisionUpdateRequest;
+import com.example.demojwt.dto.request.PermissionUpdateRequest;
+import com.example.demojwt.dto.request.RoleDto;
 import com.example.demojwt.dto.request.StudentUpdateRoleDto;
+import com.example.demojwt.service.FunctionService;
+import com.example.demojwt.service.PermissionService;
 import com.example.demojwt.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,26 +19,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/roles")
 public class RoleController {
     private final RoleService roleService;
+    private final FunctionService functionService;
+    private final PermissionService permissionService;
 
-    @PostMapping("/update-permission")
-    public ResponseEntity<?> updatePermission(@RequestBody PermisionUpdateRequest permisionUpdateRequest) {
-        roleService.updatePermission(permisionUpdateRequest);
+    @PostMapping("/create-role")
+    public ResponseEntity<?> createRole(@RequestBody RoleDto roleDto) {
+        roleService.createRole(roleDto);
+        return VsResponseUtil.success("Role created");
+    }
+
+    @PostMapping("/delete-role")
+    public ResponseEntity<?> deleteRole(@RequestBody RoleDto roleDto) {
+        roleService.deleteRole(roleDto);
+        return VsResponseUtil.success("Role deleted");
+    }
+
+    @PostMapping("/update-permision-in-role")
+    public ResponseEntity<?> updateFuncInRole(@RequestBody PermissionUpdateRequest request) {
+        roleService.updatePermissionInRole(request);
         return VsResponseUtil.success("Permission updated");
     }
 
-    @PostMapping("/find-all-role")
-    public ResponseEntity<?> findAllRole() {
-        return VsResponseUtil.success(roleService.getALlRole());
-    }
-    @PostMapping("/update-role")
-    public ResponseEntity<?> updateRole(@RequestBody StudentUpdateRoleDto studentUpdateRoleDto) {
-        roleService.updateRole(studentUpdateRoleDto);
-        return VsResponseUtil.success("Role updated");
-    }
-
-
-    @PostMapping("/load-permissions")
-    public ResponseEntity<?> loadAllPermission() {
-        return VsResponseUtil.success( roleService.getAllPermission());
-    }
 }

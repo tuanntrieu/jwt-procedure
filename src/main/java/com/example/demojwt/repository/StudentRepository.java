@@ -1,9 +1,6 @@
 package com.example.demojwt.repository;
 
 
-
-
-
 import com.example.demojwt.constant.RoleConstant;
 import com.example.demojwt.dto.request.StudentDto;
 import com.example.demojwt.dto.request.StudentSearchDto;
@@ -13,7 +10,6 @@ import com.example.demojwt.enity.Role;
 import com.example.demojwt.enity.Student;
 import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.NotFoundException;
-import com.example.demojwt.service.RoleService;
 import jakarta.persistence.*;
 
 import jakarta.transaction.Transactional;
@@ -160,7 +156,6 @@ public class StudentRepository {
                     .birthday((new Date(timestamp.getTime())))
                     .userName((String) result[5])
                     .role((String) result[6])
-                    .permissions(permissionRepository.findByRoleName(result[6].toString()))
                     .build();
             students.add(student);
         }

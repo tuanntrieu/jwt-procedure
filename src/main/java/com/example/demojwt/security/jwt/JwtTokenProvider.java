@@ -1,8 +1,8 @@
 package com.example.demojwt.security.jwt;
 
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.demojwt.dto.response.TokenRefreshResponse;
 import com.example.demojwt.enity.TokenInvalid;
 import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.InvalidException;
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,7 +48,7 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CLAIM_TYPE, "access");
+        claims.put(CLAIM_TYPE, isRefreshToken ? "refresh" : "access");
         claims.put(USERNAME_KEY, userDetails.getUsername());
         claims.put(AUTHORITIES_KEY, authorities);
 
@@ -76,26 +75,29 @@ public class JwtTokenProvider {
         DecodedJWT jwt = JWT.decode(token);
         return jwt.getSubject();
     }
+
     public Date extractExpiresTimeFromJwt(String token) {
         DecodedJWT jwt = JWT.decode(token);
         return jwt.getExpiresAt();
     }
 
-    public String refreshToken(String refreshToken) {
+    public TokenRefreshResponse refreshToken(String refreshToken) {
         if (!validateToken(refreshToken) || tokenService.exists(refreshToken)) {
             throw new InvalidException("Invalid Refresh Token");
         }
+
         String username = extractSubjectFromJwt(refreshToken);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (!refreshToken.equals(user.getRefreshToken())) {
+            throw new InvalidException("Invalid Refresh Token");
+        }
         tokenInvalidRepository.save(TokenInvalid.builder()
                 .token(refreshToken)
                 .tokenType("refresh_token")
                 .expiresTime(extractExpiresTimeFromJwt(refreshToken))
                 .build());
-        if (!refreshToken.equals(user.getRefreshToken())) {
-            throw new InvalidException("Invalid Refresh Token");
-        }
         CustomUserDetails userPrincipal = CustomUserDetails.create(user);
 
         String newAccessToken = generateToken(userPrincipal, Boolean.FALSE);
@@ -107,7 +109,7 @@ public class JwtTokenProvider {
         user.setAccessToken(newAccessToken);
         userRepository.save(user);
 
-        return newAccessToken;
+        return new TokenRefreshResponse(newAccessToken, newRefreshToken);
     }
 
     public boolean isTokenExpired(String token) {

@@ -28,11 +28,13 @@ public class User {
     @JsonIgnore
     private String refreshToken;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "role_id", foreignKey = @ForeignKey(name = "FK_USER_ROLE"), referencedColumnName = "id")
     private Role role;
 
     @OneToOne(mappedBy = "user")
     private Student student;
+
+    
 
 }

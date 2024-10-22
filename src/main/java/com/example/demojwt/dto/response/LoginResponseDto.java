@@ -16,9 +16,11 @@ public class LoginResponseDto {
 
     private String accessToken;
 
+    private String refreshToken;
+
     private String role;
 
-    private List<String> permissions;
+    private List<FunctionResponseDto> functions;
 
     public static LoginResponseDtoBuilder builder() {
         return new LoginResponseDtoBuilder().tokenType("Bearer");

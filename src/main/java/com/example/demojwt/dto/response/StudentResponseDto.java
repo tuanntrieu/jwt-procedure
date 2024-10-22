@@ -3,7 +3,7 @@ package com.example.demojwt.dto.response;
 import com.example.demojwt.enity.Permission;
 import lombok.*;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,5 +27,5 @@ public class StudentResponseDto {
 
     private String role;
 
-    private List<String> permissions=new ArrayList<>();
+ //   private List<FunctionResponseDto> functions=new ArrayList<>();
 }
