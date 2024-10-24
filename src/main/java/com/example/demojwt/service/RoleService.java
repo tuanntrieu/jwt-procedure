@@ -1,17 +1,15 @@
 package com.example.demojwt.service;
 
 import com.example.demojwt.dto.request.GroupDto;
-import com.example.demojwt.dto.request.PermissionUpdateRequest;
+import com.example.demojwt.dto.request.PermissionUpdateRequestDto;
 import com.example.demojwt.dto.request.RoleDto;
 import com.example.demojwt.dto.request.StudentUpdateRoleDto;
-import com.example.demojwt.enity.Function;
-import com.example.demojwt.enity.Permission;
 import com.example.demojwt.enity.Role;
 
 import java.util.List;
 
 public interface RoleService {
-    void updatePermissionInRole(PermissionUpdateRequest request);
+    void updatePermissionInRole(PermissionUpdateRequestDto request);
 
     List<String> getALlRole();
 

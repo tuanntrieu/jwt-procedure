@@ -4,15 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PermissionUpdateRequest {
-    private String role;
-    private Set<String> permissions = new HashSet<>();
+public class ImportStudentDto {
+    private MultipartFile file;
 }

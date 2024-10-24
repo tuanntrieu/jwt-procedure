@@ -1,7 +1,7 @@
 package com.example.demojwt.service.impl;
 
 import com.example.demojwt.dto.request.GroupDto;
-import com.example.demojwt.dto.request.PermissionUpdateRequest;
+import com.example.demojwt.dto.request.PermissionUpdateRequestDto;
 import com.example.demojwt.dto.request.RoleDto;
 import com.example.demojwt.dto.request.StudentUpdateRoleDto;
 import com.example.demojwt.enity.*;
@@ -31,7 +31,7 @@ public class RoleServiceImpl implements RoleService {
     private final PermissionRepository permissionRepository;
 
     @Override
-    public void updatePermissionInRole(PermissionUpdateRequest request) {
+    public void updatePermissionInRole(PermissionUpdateRequestDto request) {
         Set<Permission> newPermissions = new HashSet<>();
         Set<Function> newFunctions = new HashSet<>();
         Role role = findRoleByRoleName(request.getRole());

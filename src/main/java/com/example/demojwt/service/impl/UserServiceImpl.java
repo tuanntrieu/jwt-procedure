@@ -4,6 +4,7 @@ import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.NotFoundException;
 import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.service.UserService;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

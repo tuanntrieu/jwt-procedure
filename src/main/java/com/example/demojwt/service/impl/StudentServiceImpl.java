@@ -5,6 +5,7 @@ import com.example.demojwt.dto.response.PageResponseDto;
 import com.example.demojwt.dto.response.StudentResponseDto;
 import com.example.demojwt.enity.Student;
 import com.example.demojwt.exception.DataIntegrityViolationException;
+import com.example.demojwt.exception.InvalidException;
 import com.example.demojwt.exception.NotFoundException;
 import com.example.demojwt.repository.StudentRepositoryV2;
 import com.example.demojwt.repository.UserRepository;
@@ -14,9 +15,11 @@ import com.example.demojwt.util.ExcelExportUtil;
 import com.example.demojwt.util.ExcelImportUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -24,12 +27,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+
 @Service
 @RequiredArgsConstructor
 public class StudentServiceImpl implements StudentService {
     private final StudentRepositoryV2 studentRepository;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final ExcelImportUtil importUtil;
 
     @Override
     public Student findById(Long id) {
@@ -91,8 +96,8 @@ public class StudentServiceImpl implements StudentService {
         String headerKey = "Content-Disposition";
         String headerValue = "attachment; filename=example.xlsx";
         response.setHeader(headerKey, headerValue);
-        ExcelImportUtil ex = new ExcelImportUtil();
-        ex.createExampleExcelFile(response);
+
+        importUtil.createExampleExcelFile(response);
     }
 
     @Override
@@ -109,6 +114,23 @@ public class StudentServiceImpl implements StudentService {
         List<StudentResponseDto> list = studentRepository.searchExport(studentSearchDto);
         ExcelExportUtil exportUtil = new ExcelExportUtil(list);
         exportUtil.exportDataToExcel(response);
+    }
+
+
+
+    @Override
+    public void importStudent(ImportStudentDto importStudentDto) throws IOException{
+        try {
+            if (!ExcelImportUtil.isExcelFile(importStudentDto.getFile())) {
+                throw new InvalidException("Incorrect file type");
+            }
+            List<StudentDto> studentDtos = importUtil.extractFromFile(importStudentDto.getFile().getInputStream());
+            studentDtos.forEach(student -> {
+                studentRepository.addStudent(student);
+            });
+        } catch (MaxUploadSizeExceededException e) {
+            throw new MaxUploadSizeExceededException(2, e);
+        }
     }
 
 

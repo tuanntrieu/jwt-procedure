@@ -33,7 +33,7 @@ public class AuthorFilter extends OncePerRequestFilter {
     private final TokenService tokenService;
     private final PermissionRepository permissionRepository;
     private static final List<String> PUBLIC_END_POINT = List.of(
-            "http://localhost:8080/api/v1/auth"
+            "http://localhost:8080/api/v1/auth","http://localhost:8080/api/v1/students/search-student"
     );
 
     @Override

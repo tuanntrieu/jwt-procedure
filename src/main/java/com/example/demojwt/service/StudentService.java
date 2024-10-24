@@ -24,4 +24,6 @@ public interface StudentService {
     void createExampleFile(HttpServletResponse response) throws IOException;
 
     void exportStudents(StudentSearchExportDto studentSearchDto, HttpServletResponse response) throws IOException;
+
+    void importStudent(ImportStudentDto importStudentDto) throws IOException;;
 }

@@ -4,17 +4,13 @@ import com.example.demojwt.base.VsResponseUtil;
 import com.example.demojwt.dto.request.*;
 import com.example.demojwt.service.RoleService;
 import com.example.demojwt.service.StudentService;
-import com.example.demojwt.util.ExcelImportUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -59,9 +55,15 @@ public class StudentController {
         studentService.exportStudents(studentUpdateRoleDto, response);
     }
 
-    @PostMapping("/create-example-file")
+    @PostMapping("/import/create-example-file")
     public void createEx(HttpServletResponse response) throws IOException {
         studentService.createExampleFile(response);
+    }
+
+    @PostMapping("/import/import-student")
+    public ResponseEntity<?> importStudent(@ModelAttribute ImportStudentDto dto) throws IOException {
+        studentService.importStudent(dto);
+        return VsResponseUtil.success("Successfully imported student");
     }
 
 }

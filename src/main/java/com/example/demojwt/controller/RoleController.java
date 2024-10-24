@@ -1,9 +1,8 @@
 package com.example.demojwt.controller;
 
 import com.example.demojwt.base.VsResponseUtil;
-import com.example.demojwt.dto.request.PermissionUpdateRequest;
+import com.example.demojwt.dto.request.PermissionUpdateRequestDto;
 import com.example.demojwt.dto.request.RoleDto;
-import com.example.demojwt.dto.request.StudentUpdateRoleDto;
 import com.example.demojwt.service.FunctionService;
 import com.example.demojwt.service.PermissionService;
 import com.example.demojwt.service.RoleService;
@@ -35,7 +34,7 @@ public class RoleController {
     }
 
     @PostMapping("/update-permision-in-role")
-    public ResponseEntity<?> updateFuncInRole(@RequestBody PermissionUpdateRequest request) {
+    public ResponseEntity<?> updateFuncInRole(@RequestBody PermissionUpdateRequestDto request) {
         roleService.updatePermissionInRole(request);
         return VsResponseUtil.success("Permission updated");
     }
