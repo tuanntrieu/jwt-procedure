@@ -17,4 +17,5 @@ public class StudentSearchDto extends PaginationRequestDto {
     private String address;
     private Date startDate;
     private Date endDate;
+    private String status;
 }

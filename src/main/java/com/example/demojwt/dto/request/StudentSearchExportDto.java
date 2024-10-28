@@ -17,4 +17,5 @@ public class StudentSearchExportDto {
     private String address;
     private Date startDate;
     private Date endDate;
+    private String status;
 }

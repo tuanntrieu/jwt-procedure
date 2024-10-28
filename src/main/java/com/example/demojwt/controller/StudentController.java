@@ -66,4 +66,29 @@ public class StudentController {
         return VsResponseUtil.success("Successfully imported student");
     }
 
+    @PostMapping("/send-approval")
+    public ResponseEntity<?> sendForApproval(@RequestBody ChangeStatusRequestDto requestDto) {
+        studentService.sendForApproval(requestDto);
+        return VsResponseUtil.success("Successfully sent for approval");
+    }
+
+    @PostMapping("/approve/accept")
+    public ResponseEntity<?> approve(@RequestBody ChangeStatusRequestDto requestDto) {
+        studentService.approve(requestDto);
+        return VsResponseUtil.success("Successfully approved");
+    }
+
+    @PostMapping("/approve/reject")
+    public ResponseEntity<?> reject(@RequestBody RejectApprovalDto requestDto) {
+        studentService.reject(requestDto);
+        return VsResponseUtil.success("Successfully rejected");
+    }
+    @PostMapping("/cancel-approval")
+    public ResponseEntity<?> cancelApproval(@RequestBody ChangeStatusRequestDto requestDto) {
+        studentService.cancelApproval(requestDto);
+        return VsResponseUtil.success("Successfully cancelled");
+    }
+
+
+
 }

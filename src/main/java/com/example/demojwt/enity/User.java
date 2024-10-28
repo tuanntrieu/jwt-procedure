@@ -22,6 +22,10 @@ public class User {
 
     private String password;
 
+    private String status;
+
+    private String rejectReason;
+
     @JsonIgnore
     private String accessToken;
 
@@ -35,6 +39,5 @@ public class User {
     @OneToOne(mappedBy = "user")
     private Student student;
 
-    
 
 }

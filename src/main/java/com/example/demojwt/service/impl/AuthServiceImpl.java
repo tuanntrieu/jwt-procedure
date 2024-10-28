@@ -2,15 +2,10 @@ package com.example.demojwt.service.impl;
 
 import com.example.demojwt.dto.request.LoginRequestDto;
 import com.example.demojwt.dto.response.LoginResponseDto;
-import com.example.demojwt.enity.Permission;
 import com.example.demojwt.enity.TokenInvalid;
 import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.InvalidException;
-import com.example.demojwt.exception.NotFoundException;
-import com.example.demojwt.exception.UnauthorizedException;
-import com.example.demojwt.repository.PermissionRepository;
 import com.example.demojwt.repository.TokenInvalidRepository;
-import com.example.demojwt.repository.UserRepository;
 import com.example.demojwt.security.CustomUserDetails;
 import com.example.demojwt.security.jwt.JwtTokenProvider;
 import com.example.demojwt.service.AuthService;
@@ -29,8 +24,6 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -44,6 +37,11 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword()));
+            if (authentication.isAuthenticated()) {
+               if(!userService.findByUsername(loginRequestDto.getUsername()).getStatus().equals("Đã phê duyệt")) {
+                   throw new InvalidException("Incorrect username or password");
+               }
+            }
             SecurityContextHolder.getContext().setAuthentication(authentication);
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String accessToken = jwtTokenProvider.generateToken(userDetails, Boolean.FALSE);

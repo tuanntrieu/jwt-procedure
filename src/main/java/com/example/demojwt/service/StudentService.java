@@ -25,5 +25,13 @@ public interface StudentService {
 
     void exportStudents(StudentSearchExportDto studentSearchDto, HttpServletResponse response) throws IOException;
 
-    void importStudent(ImportStudentDto importStudentDto) throws IOException;;
+    void importStudent(ImportStudentDto importStudentDto) throws IOException;
+
+    void sendForApproval(ChangeStatusRequestDto requestDto);
+
+    void approve(ChangeStatusRequestDto requestDto);
+
+    void reject(RejectApprovalDto requestDto);
+
+    void cancelApproval(ChangeStatusRequestDto requestDto);
 }

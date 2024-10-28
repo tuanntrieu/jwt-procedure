@@ -1,9 +1,11 @@
 package com.example.demojwt.service.impl;
 
+import com.example.demojwt.constant.StatusConstant;
 import com.example.demojwt.dto.request.*;
 import com.example.demojwt.dto.response.PageResponseDto;
 import com.example.demojwt.dto.response.StudentResponseDto;
 import com.example.demojwt.enity.Student;
+import com.example.demojwt.enity.User;
 import com.example.demojwt.exception.DataIntegrityViolationException;
 import com.example.demojwt.exception.InvalidException;
 import com.example.demojwt.exception.NotFoundException;
@@ -15,7 +17,6 @@ import com.example.demojwt.util.ExcelExportUtil;
 import com.example.demojwt.util.ExcelImportUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,9 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public void update(StudentUpdateDto studentDto) {
         Student student = studentRepository.getStudentById(studentDto.getId());
+        if(student.getUser().getStatus().equals(StatusConstant.PENDING_APPROVAL)){
+            throw new InvalidException("Pending approval");
+        }
         if (student == null) {
             throw new NotFoundException("Student not found");
         }
@@ -69,6 +73,9 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public void delete(StudentDeleteDto studentDto) {
         Student student = studentRepository.getStudentById(studentDto.getId());
+        if(student.getUser().getStatus().equals(StatusConstant.PENDING_APPROVAL)){
+            throw new InvalidException("Pending approval");
+        }
         if (student == null) {
             throw new NotFoundException("Student not found");
         }
@@ -117,9 +124,8 @@ public class StudentServiceImpl implements StudentService {
     }
 
 
-
     @Override
-    public void importStudent(ImportStudentDto importStudentDto) throws IOException{
+    public void importStudent(ImportStudentDto importStudentDto) throws IOException {
         try {
             if (!ExcelImportUtil.isExcelFile(importStudentDto.getFile())) {
                 throw new InvalidException("Incorrect file type");
@@ -131,6 +137,70 @@ public class StudentServiceImpl implements StudentService {
         } catch (MaxUploadSizeExceededException e) {
             throw new MaxUploadSizeExceededException(2, e);
         }
+    }
+
+    @Override
+    public void sendForApproval(ChangeStatusRequestDto requestDto) {
+        if (requestDto.getUsernames().size()==0) {
+            throw new NotFoundException("Can't do");
+        }
+        requestDto.getUsernames().forEach(username -> {
+            if (!userService.findByUsername(username).getStatus().equals(StatusConstant.NEW) && !userService.findByUsername(username).getStatus().equals(StatusConstant.CANCEL_APPROVAL)) {
+                throw new InvalidException("Status Error!");
+            }
+        });
+        requestDto.getUsernames().forEach(username -> {
+            userRepository.changeStatus(username, StatusConstant.PENDING_APPROVAL);
+        });
+    }
+
+    @Override
+    public void approve(ChangeStatusRequestDto requestDto) {
+        if (requestDto.getUsernames().size()==0) {
+            throw new NotFoundException("Can't do");
+        }
+        requestDto.getUsernames().forEach(username -> {
+            if (!userService.findByUsername(username).getStatus().equals(StatusConstant.PENDING_APPROVAL)) {
+                throw new InvalidException("Status Error!");
+            }
+        });
+        requestDto.getUsernames().forEach(username -> {
+            userRepository.changeStatus(username, StatusConstant.APPROVED);
+        });
+
+    }
+
+    @Override
+    public void reject(RejectApprovalDto requestDto) {
+        if (requestDto.getUsernames().size()==0) {
+            throw new NotFoundException("Can't do");
+        }
+        requestDto.getUsernames().forEach(username -> {
+            if (!userService.findByUsername(username).getStatus().equals(StatusConstant.PENDING_APPROVAL)) {
+                throw new InvalidException("Status Error!");
+            }
+        });
+        requestDto.getUsernames().forEach(username -> {
+            User user = userService.findByUsername(username);
+            user.setStatus(StatusConstant.REJECT);
+            user.setRejectReason(requestDto.getRejectReason());
+            userRepository.save(user);
+        });
+    }
+
+    @Override
+    public void cancelApproval(ChangeStatusRequestDto requestDto) {
+        if (requestDto.getUsernames().size()==0) {
+            throw new NotFoundException("Can't do");
+        }
+        requestDto.getUsernames().forEach(username -> {
+            if (!userService.findByUsername(username).getStatus().equals(StatusConstant.APPROVED)) {
+                throw new InvalidException("Status Error!");
+            }
+        });
+        requestDto.getUsernames().forEach(username -> {
+            userRepository.changeStatus(username, StatusConstant.CANCEL_APPROVAL);
+        });
     }
 
 

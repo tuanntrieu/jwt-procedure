@@ -1,11 +1,8 @@
 package com.example.demojwt.dto.response;
 
-import com.example.demojwt.enity.Permission;
 import lombok.*;
 
 import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -27,5 +24,7 @@ public class StudentResponseDto {
 
     private String role;
 
- //   private List<FunctionResponseDto> functions=new ArrayList<>();
+    private String status;
+
+    private String rejectReason;
 }

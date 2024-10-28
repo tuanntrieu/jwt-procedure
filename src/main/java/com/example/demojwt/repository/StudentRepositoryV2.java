@@ -1,5 +1,6 @@
 package com.example.demojwt.repository;
 
+import com.example.demojwt.constant.StatusConstant;
 import com.example.demojwt.dto.request.StudentDto;
 import com.example.demojwt.dto.request.StudentSearchDto;
 import com.example.demojwt.dto.request.StudentSearchExportDto;
@@ -170,6 +171,11 @@ public class StudentRepositoryV2 {
             where.append(" AND s.birthday <= :endDate");
             params.put("endDate", studentSearchDto.getEndDate());
         }
+        if (studentSearchDto.getStatus() != null && !studentSearchDto.getStatus().isEmpty()) {
+            where.append(" AND s.user.status = :status");
+            params.put("status", studentSearchDto.getStatus());
+
+        }
 
         String sortBy = studentSearchDto.getSortBy();
         if (sortBy != null && !sortBy.isEmpty()) {
@@ -195,6 +201,10 @@ public class StudentRepositoryV2 {
             studentResponseDto.setBirthday(student.getBirthday());
             studentResponseDto.setGender(student.getGender());
             studentResponseDto.setUserName(student.getUser().getUsername());
+            studentResponseDto.setStatus(student.getUser().getStatus());
+            if (student.getUser().getStatus().equals(StatusConstant.REJECT)) {
+                studentResponseDto.setRejectReason(student.getUser().getRejectReason());
+            }
             if (student.getUser().getRole() != null) {
                 studentResponseDto.setRole(student.getUser().getRole().getRoleName());
             }

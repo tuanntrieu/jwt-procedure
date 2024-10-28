@@ -1,7 +1,9 @@
 package com.example.demojwt.repository;
 
 import com.example.demojwt.enity.User;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -19,4 +21,9 @@ public interface UserRepository extends JpaRepository<User,Integer> {
 
     @Query("SELECT u FROM User u WHERE u.role.roleName=?1")
     User loadUserByRoleName(String role);
+
+    @Query("UPDATE User u SET u.status =?2 WHERE u.username=?1")
+    @Modifying
+    @Transactional
+    void changeStatus(String username, String status);
 }
