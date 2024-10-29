@@ -119,6 +119,11 @@ public class StudentRepositoryV2 {
             where.append(" AND s.birthday <= :endDate");
             params.put("endDate", studentSearchDto.getEndDate());
         }
+        if (studentSearchDto.getStatus() != null && !studentSearchDto.getStatus().isEmpty()) {
+            where.append(" AND s.user.status = :status");
+            params.put("status", studentSearchDto.getStatus());
+
+        }
 
         sql.append(where);
         TypedQuery<Student> query = entityManager.createQuery(sql.toString(), Student.class);
@@ -174,7 +179,6 @@ public class StudentRepositoryV2 {
         if (studentSearchDto.getStatus() != null && !studentSearchDto.getStatus().isEmpty()) {
             where.append(" AND s.user.status = :status");
             params.put("status", studentSearchDto.getStatus());
-
         }
 
         String sortBy = studentSearchDto.getSortBy();
