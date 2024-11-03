@@ -22,8 +22,8 @@ public interface UserRepository extends JpaRepository<User,Integer> {
     @Query("SELECT u FROM User u WHERE u.role.roleName=?1")
     User loadUserByRoleName(String role);
 
-    @Query("UPDATE User u SET u.status =?2 WHERE u.username=?1")
+    @Query("UPDATE User u SET u.status =?2 WHERE u.id=?1")
     @Modifying
-    @Transactional
-    void changeStatus(String username, String status);
+    void changeStatus(Long  id, String status);
+
 }

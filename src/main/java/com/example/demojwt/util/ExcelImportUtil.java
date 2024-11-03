@@ -1,7 +1,6 @@
 package com.example.demojwt.util;
 
 import com.example.demojwt.dto.request.StudentDto;
-import com.example.demojwt.exception.InvalidException;
 import com.example.demojwt.exception.NotFoundException;
 import com.example.demojwt.service.UserService;
 import jakarta.servlet.ServletOutputStream;
@@ -95,6 +94,7 @@ public class ExcelImportUtil {
     }
 
     public List<StudentDto> extractFromFile(InputStream inputStream) {
+
         try {
             XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
@@ -102,7 +102,99 @@ public class ExcelImportUtil {
                 throw new NotFoundException("Sheet is not found");
             }
             Iterator<Row> rows = sheet.iterator();
-            List<StudentDto> stuList = new ArrayList<StudentDto>();
+            List<StudentDto> stuList = new ArrayList<>();
+            if (rows.hasNext()) {
+                rows.next();
+            }
+            while (rows.hasNext()) {
+                Row currentRow = rows.next();
+                if (isRowEmpty(currentRow)) {
+                    continue;
+                }
+                StudentDto student = new StudentDto();
+                String name = "", address = "", gender = "", username = "", password = "";
+                String birthday = "";
+                Date brthDate = null;
+                boolean isAdd = true;
+
+                for (int cellIdx = 0; cellIdx < 6; cellIdx++) {
+                    Cell currentCell = currentRow.getCell(cellIdx);
+
+                    switch (cellIdx) {
+                        case 0:
+                            name = getCellValueAsString(currentCell);
+                            student.setName(name);
+                            break;
+                        case 1:
+                            address = getCellValueAsString(currentCell);
+                            student.setAddress(address);
+                            break;
+                        case 2:
+                            if (currentCell.getCellType().equals(CellType.STRING)) {
+                                birthday = currentCell.getStringCellValue();
+                                student.setBirthday(new Date(birthday));
+                            } else if (currentCell.getCellType() == CellType.NUMERIC) {
+                                birthday = String.valueOf(currentCell.getNumericCellValue());
+                                if (birthday.matches("^(\\d{1,2}[/](\\d{1,2})[/](\\d{4}))$")) {
+                                    student.setBirthday(new Date(birthday));
+                                }
+                            } else {
+                                brthDate = currentCell.getDateCellValue();
+                                student.setBirthday(brthDate);
+                            }
+                            break;
+                        case 3:
+                            gender = getCellValueAsString(currentCell);
+                            student.setGender(StringUtils.capitalize(gender));
+                            break;
+                        case 4:
+                            username = getCellValueAsString(currentCell);
+                            if (isAdd) {
+                                if (userService.existsByUsername(username)) {
+                                    isAdd = false;
+                                }
+                            }
+                            if (isAdd) {
+                                for (StudentDto tmp : stuList) {
+                                    if (username.equals(tmp.getUsername())) {
+                                        isAdd = false;
+                                    }
+                                    break;
+                                }
+                            }
+                            student.setUsername(username);
+                            break;
+                        case 5:
+                            password = getCellValueAsString(currentCell).toLowerCase();
+                            student.setPassword(password);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                student.setRole("ROLE_STUDENT");
+                if (isAdd) {
+                    stuList.add(student);
+                }
+                isAdd = true;
+            }
+            workbook.close();
+            return stuList;
+        } catch (IOException e) {
+            throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
+        }
+
+    }
+
+    public String validateData(InputStream inputStream) {
+        StringBuilder message = new StringBuilder("");
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+            Sheet sheet = workbook.getSheetAt(0);
+            if (sheet == null) {
+                throw new NotFoundException("Sheet is not found");
+            }
+            Iterator<Row> rows = sheet.iterator();
             if (rows.hasNext()) {
                 rows.next();
             }
@@ -113,92 +205,124 @@ public class ExcelImportUtil {
                 if (isRowEmpty(currentRow)) {
                     continue;
                 }
-                StudentDto student = new StudentDto();
                 String name = "", address = "", gender = "", username = "", password = "";
                 String birthday = "";
                 Date brthDate = null;
-
                 for (int cellIdx = 0; cellIdx < 6; cellIdx++) {
                     Cell currentCell = currentRow.getCell(cellIdx);
-                    if (currentCell == null) {
-                        throw new InvalidException(getErrorMessage(cellIdx, row));
-                    } else {
-                        switch (cellIdx) {
-                            case 0:
-                                name = getCellValueAsString(currentCell);
-                                if (name.isEmpty()) {
-                                    throw new InvalidException("Name is required at row " + row);
-                                }
-                                student.setName(name);
-                                break;
-                            case 1:
-                                address = getCellValueAsString(currentCell);
-                                if (address.isEmpty()) {
-                                    throw new InvalidException("Address is required at row " + row);
-                                }
-                                student.setAddress(address);
-                                break;
-                            case 2:
-                                if (currentCell.getCellType().equals(CellType.STRING)) {
-                                    birthday = currentCell.getStringCellValue();
-                                    if (birthday.matches("^(\\d{1,2}[/](\\d{1,2})[/](\\d{4}))$")) {
-                                        student.setBirthday(new Date(birthday));
-                                    } else {
-                                        throw new InvalidException("Birthday is invalid at row " + row);
-                                    }
+                    switch (cellIdx) {
+                        case 0:
+                            name = getCellValueAsString(currentCell);
+                            if (name.isEmpty()) {
+                                message.append(getEmptyErrorMessage(cellIdx, row) + ", ");
+                            }
+                            break;
+                        case 1:
+                            address = getCellValueAsString(currentCell);
+                            if (address.isEmpty()) {
+                                message.append(getEmptyErrorMessage(cellIdx, row) + ", ");
+                            }
+                            break;
+                        case 2:
+
+                            if (currentCell.getCellType().equals(CellType.STRING)) {
+                                birthday = currentCell.getStringCellValue();
+                                if (birthday.isEmpty()) {
+                                    message.append(getEmptyErrorMessage(cellIdx, row) + ", ");
                                 } else {
-                                    try {
-                                        brthDate = currentCell.getDateCellValue();
-                                    } catch (Exception e) {
-                                        throw new InvalidException("BirthDate is invalid at row " + row);
+                                    if (!birthday.matches("^(\\d{1,2}[/](\\d{1,2})[/](\\d{4}))$")) {
+                                        message.append("Birthday is invalid at row " + row + ", ");
                                     }
-                                    student.setBirthday(brthDate);
                                 }
-                                break;
-                            case 3:
-                                gender = getCellValueAsString(currentCell).toLowerCase();
-                                if (!gender.equals("nam") && !gender.equals("nữ")) {
-                                    throw new InvalidException("Gender is invalid at row " + row);
+                            } else if (currentCell.getCellType() == CellType.NUMERIC) {
+                                birthday = String.valueOf(currentCell.getNumericCellValue());
+                                if (!birthday.matches("^(\\d{1,2}[/](\\d{1,2})[/](\\d{4}))$")) {
+                                    message.append("Birthday is invalid at row " + row + ", ");
                                 }
-                                student.setGender(StringUtils.capitalize(gender));
-                                break;
-                            case 4:
-                                username = getCellValueAsString(currentCell);
-                                if (username.isEmpty()) {
-                                    throw new InvalidException("Username is required at row " + row);
+                            } else {
+                                try {
+                                    brthDate = currentCell.getDateCellValue();
+                                } catch (Exception e) {
+                                    message.append("Birthday is invalid at row " + row + ", ");
                                 }
-                                String finalUsername = username;
-                                int finalRow = row;
-                                stuList.stream().forEach(studentDto -> {
-                                    if (studentDto.getUsername().equals(finalUsername)) {
-                                        throw new InvalidException("Duplicate username at row " + finalRow);
-                                    }
-                                });
-                                if (userService.existsByUsername(username)) {
-                                    throw new InvalidException("Username at row " + finalRow + " is already in use ");
-                                }
-                                student.setUsername(username);
-                                break;
-                            case 5:
-                                password = getCellValueAsString(currentCell).toLowerCase();
-                                if (password.isEmpty()) {
-                                    throw new InvalidException("Password is required at row " + row);
-                                }
-                                student.setPassword(password);
-                                break;
-                            default:
-                                break;
-                        }
+                            }
+                            if (getCellValueAsString(currentCell).isEmpty()) {
+                                message.append(getEmptyErrorMessage(cellIdx, row) + ", ");
+                            }
+                            break;
+                        case 3:
+                            gender = getCellValueAsString(currentCell).toLowerCase();
+                            if (gender.isEmpty()) {
+                                message.append(getEmptyErrorMessage(cellIdx, row) + ", ");
+                            } else if (!gender.equals("nam") && !gender.equals("nữ")) {
+                                message.append("Gender is invalid at row " + row + ", ");
+                            }
+                            break;
+                        case 4:
+                            username = getCellValueAsString(currentCell);
+                            if (username.isEmpty()) {
+                                message.append(getEmptyErrorMessage(cellIdx, row) + ", ");
+                            }
+                            break;
+                        case 5:
+                            password = getCellValueAsString(currentCell);
+                            if (password.isEmpty()) {
+                                message.append(getEmptyErrorMessage(cellIdx, row) + ", ");
+                            }
+                            break;
+                        default:
+                            break;
                     }
                 }
-                student.setRole("ROLE_STUDENT");
-                stuList.add(student);
             }
             workbook.close();
-            return stuList;
         } catch (IOException e) {
             throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
         }
+        return message.toString().trim();
+    }
+
+    public String checkUsername(InputStream inputStream) {
+        StringBuilder message = new StringBuilder("");
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+            Sheet sheet = workbook.getSheetAt(0);
+            if (sheet == null) {
+                throw new NotFoundException("Sheet is not found");
+            }
+            Iterator<Row> rows = sheet.iterator();
+            if (rows.hasNext()) {
+                rows.next();
+            }
+            int row = 1;
+            List<String> usernames = new ArrayList<>();
+            while (rows.hasNext()) {
+                Row currentRow = rows.next();
+                row++;
+                if (isRowEmpty(currentRow)) {
+                    continue;
+                }
+                String username = "";
+                Cell currentCell = currentRow.getCell(4);
+                username = getCellValueAsString(currentCell);
+                String finalUsername = username;
+                int finalRow = row;
+                if (userService.existsByUsername(username)) {
+                    message.append("Username at row " + finalRow + " is already taken, ");
+                }
+                usernames.stream().forEach(usernameTmp -> {
+                    if (usernameTmp.equals(finalUsername)) {
+                        message.append("Duplicate username at row " + finalRow + ",");
+
+                    }
+                });
+                usernames.add(username);
+            }
+            workbook.close();
+        } catch (IOException e) {
+            throw new RuntimeException("fail to parse Excel file: " + e.getMessage());
+        }
+        return message.toString().trim();
     }
 
     private boolean isRowEmpty(Row row) {
@@ -232,8 +356,7 @@ public class ExcelImportUtil {
         }
     }
 
-
-    private String getErrorMessage(int cellIdx, int row) {
+    private String getEmptyErrorMessage(int cellIdx, int row) {
         switch (cellIdx) {
             case 0:
                 return "Name is required at row " + row;

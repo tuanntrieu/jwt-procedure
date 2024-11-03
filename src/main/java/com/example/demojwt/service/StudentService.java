@@ -34,4 +34,6 @@ public interface StudentService {
     void reject(RejectApprovalDto requestDto);
 
     void cancelApproval(ChangeStatusRequestDto requestDto);
+    String validateDataImport(ImportStudentDto importStudentDto);
+    String checkUsernameImport(ImportStudentDto importStudentDto);
 }

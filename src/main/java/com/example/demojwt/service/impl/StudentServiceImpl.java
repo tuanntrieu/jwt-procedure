@@ -16,6 +16,7 @@ import com.example.demojwt.service.UserService;
 import com.example.demojwt.util.ExcelExportUtil;
 import com.example.demojwt.util.ExcelImportUtil;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,7 +61,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public void update(StudentUpdateDto studentDto) {
         Student student = studentRepository.getStudentById(studentDto.getId());
-        if(student.getUser().getStatus().equals(StatusConstant.PENDING_APPROVAL)){
+        if (student.getUser().getStatus().equals(StatusConstant.PENDING_APPROVAL)) {
             throw new InvalidException("Pending approval");
         }
         if (student == null) {
@@ -73,7 +74,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public void delete(StudentDeleteDto studentDto) {
         Student student = studentRepository.getStudentById(studentDto.getId());
-        if(student.getUser().getStatus().equals(StatusConstant.PENDING_APPROVAL)){
+        if (student.getUser().getStatus().equals(StatusConstant.PENDING_APPROVAL)) {
             throw new InvalidException("Pending approval");
         }
         if (student == null) {
@@ -125,6 +126,7 @@ public class StudentServiceImpl implements StudentService {
 
 
     @Override
+    @Transactional
     public void importStudent(ImportStudentDto importStudentDto) throws IOException {
         try {
             if (!ExcelImportUtil.isExcelFile(importStudentDto.getFile())) {
@@ -140,48 +142,51 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Transactional
     public void sendForApproval(ChangeStatusRequestDto requestDto) {
-        if (requestDto.getUsernames().size()==0) {
+        if (requestDto.getIds().size() == 0) {
             throw new NotFoundException("Can't do");
         }
-        requestDto.getUsernames().forEach(username -> {
-            if (!userService.findByUsername(username).getStatus().equals(StatusConstant.NEW) && !userService.findByUsername(username).getStatus().equals(StatusConstant.CANCEL_APPROVAL)) {
+        requestDto.getIds().forEach(id -> {
+            if (!userService.findById(id).getStatus().equals(StatusConstant.NEW) && !userService.findById(id).getStatus().equals(StatusConstant.CANCEL_APPROVAL)) {
                 throw new InvalidException("Status Error!");
             }
         });
-        requestDto.getUsernames().forEach(username -> {
-            userRepository.changeStatus(username, StatusConstant.PENDING_APPROVAL);
+        requestDto.getIds().forEach(id -> {
+            userRepository.changeStatus(id, StatusConstant.PENDING_APPROVAL);
         });
     }
 
     @Override
+    @Transactional
     public void approve(ChangeStatusRequestDto requestDto) {
-        if (requestDto.getUsernames().size()==0) {
+        if (requestDto.getIds().size() == 0) {
             throw new NotFoundException("Can't do");
         }
-        requestDto.getUsernames().forEach(username -> {
-            if (!userService.findByUsername(username).getStatus().equals(StatusConstant.PENDING_APPROVAL)) {
+        requestDto.getIds().forEach(id -> {
+            if (!userService.findById(id).getStatus().equals(StatusConstant.PENDING_APPROVAL)) {
                 throw new InvalidException("Status Error!");
             }
         });
-        requestDto.getUsernames().forEach(username -> {
-            userRepository.changeStatus(username, StatusConstant.APPROVED);
+        requestDto.getIds().forEach(id -> {
+            userRepository.changeStatus(id, StatusConstant.APPROVED);
         });
 
     }
 
     @Override
+    @Transactional
     public void reject(RejectApprovalDto requestDto) {
-        if (requestDto.getUsernames().size()==0) {
+        if (requestDto.getIds().size() == 0) {
             throw new NotFoundException("Can't do");
         }
-        requestDto.getUsernames().forEach(username -> {
-            if (!userService.findByUsername(username).getStatus().equals(StatusConstant.PENDING_APPROVAL)) {
+        requestDto.getIds().forEach(id -> {
+            if (!userService.findById(id).getStatus().equals(StatusConstant.PENDING_APPROVAL)) {
                 throw new InvalidException("Status Error!");
             }
         });
-        requestDto.getUsernames().forEach(username -> {
-            User user = userService.findByUsername(username);
+        requestDto.getIds().forEach(id -> {
+            User user = userService.findById(id);
             user.setStatus(StatusConstant.REJECT);
             user.setRejectReason(requestDto.getRejectReason());
             userRepository.save(user);
@@ -189,18 +194,47 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Transactional
     public void cancelApproval(ChangeStatusRequestDto requestDto) {
-        if (requestDto.getUsernames().size()==0) {
+        if (requestDto.getIds().size() == 0) {
             throw new NotFoundException("Can't do");
         }
-        requestDto.getUsernames().forEach(username -> {
-            if (!userService.findByUsername(username).getStatus().equals(StatusConstant.APPROVED)) {
+        requestDto.getIds().forEach(id -> {
+            if (!userService.findById(id).getStatus().equals(StatusConstant.APPROVED)) {
                 throw new InvalidException("Status Error!");
             }
         });
-        requestDto.getUsernames().forEach(username -> {
-            userRepository.changeStatus(username, StatusConstant.CANCEL_APPROVAL);
+        requestDto.getIds().forEach(id -> {
+            userRepository.changeStatus(id, StatusConstant.CANCEL_APPROVAL);
         });
+    }
+
+    @Override
+    public String validateDataImport(ImportStudentDto importStudentDto) {
+        try {
+            if (!ExcelImportUtil.isExcelFile(importStudentDto.getFile())) {
+                throw new InvalidException("Incorrect file type");
+            }
+            return importUtil.validateData(importStudentDto.getFile().getInputStream());
+        } catch (MaxUploadSizeExceededException e) {
+            throw new MaxUploadSizeExceededException(2, e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String checkUsernameImport(ImportStudentDto importStudentDto) {
+        try {
+            if (!ExcelImportUtil.isExcelFile(importStudentDto.getFile())) {
+                throw new InvalidException("Incorrect file type");
+            }
+            return importUtil.checkUsername(importStudentDto.getFile().getInputStream());
+        } catch (MaxUploadSizeExceededException e) {
+            throw new MaxUploadSizeExceededException(2, e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

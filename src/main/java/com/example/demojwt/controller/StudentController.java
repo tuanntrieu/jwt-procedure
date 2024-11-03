@@ -66,6 +66,16 @@ public class StudentController {
         return VsResponseUtil.success("Successfully imported student");
     }
 
+    @PostMapping("/import/validate-data")
+    public ResponseEntity<?> validateData(@ModelAttribute ImportStudentDto dto) throws IOException {
+        return VsResponseUtil.success(studentService.validateDataImport(dto));
+    }
+
+    @PostMapping("/import/check-username")
+    public ResponseEntity<?> checkUsername(@ModelAttribute ImportStudentDto dto) throws IOException {
+        return VsResponseUtil.success(studentService.checkUsernameImport(dto));
+    }
+
     @PostMapping("/send-approval")
     public ResponseEntity<?> sendForApproval(@RequestBody ChangeStatusRequestDto requestDto) {
         studentService.sendForApproval(requestDto);
@@ -83,12 +93,12 @@ public class StudentController {
         studentService.reject(requestDto);
         return VsResponseUtil.success("Successfully rejected");
     }
+
     @PostMapping("/cancel-approval")
     public ResponseEntity<?> cancelApproval(@RequestBody ChangeStatusRequestDto requestDto) {
         studentService.cancelApproval(requestDto);
         return VsResponseUtil.success("Successfully cancelled");
     }
-
 
 
 }

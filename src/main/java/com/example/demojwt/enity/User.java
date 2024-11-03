@@ -24,6 +24,8 @@ public class User {
 
     private String status;
 
+    private String email;
+
     private String rejectReason;
 
     @JsonIgnore

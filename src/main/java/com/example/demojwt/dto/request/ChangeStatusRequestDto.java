@@ -12,5 +12,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChangeStatusRequestDto {
-    List<String>usernames;
+    List<Long>ids;
 }

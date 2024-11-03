@@ -140,6 +140,7 @@ public class StudentRepositoryV2 {
             studentResponseDto.setBirthday(student.getBirthday());
             studentResponseDto.setGender(student.getGender());
             studentResponseDto.setUserName(student.getUser().getUsername());
+            studentResponseDto.setUserId(student.getUser().getId());
             if (student.getUser().getRole() != null) {
                 studentResponseDto.setRole(student.getUser().getRole().getRoleName());
             }
@@ -206,6 +207,7 @@ public class StudentRepositoryV2 {
             studentResponseDto.setGender(student.getGender());
             studentResponseDto.setUserName(student.getUser().getUsername());
             studentResponseDto.setStatus(student.getUser().getStatus());
+            studentResponseDto.setUserId(student.getUser().getId());
             if (student.getUser().getStatus().equals(StatusConstant.REJECT)) {
                 studentResponseDto.setRejectReason(student.getUser().getRejectReason());
             }

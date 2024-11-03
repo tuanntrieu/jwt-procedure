@@ -37,4 +37,7 @@ public class StudentDto {
     @NotBlank(message = "Role is required")
     private String role;
 
+    private String email;
+
+
 }

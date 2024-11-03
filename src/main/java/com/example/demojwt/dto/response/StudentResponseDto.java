@@ -20,6 +20,8 @@ public class StudentResponseDto {
 
     private String gender;
 
+    private Long userId;
+
     private String userName;
 
     private String role;
